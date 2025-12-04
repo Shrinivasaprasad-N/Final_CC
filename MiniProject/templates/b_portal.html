@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crop Connect - Bidder Portal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='b_portal.css') }}" />
+  <style>
+    /* Overlay */
+    #popupOverlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 998;
+    }
+
+    /* Popup */
+    #detailsPopup {
+      display: none;
+      position: fixed;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 450px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      z-index: 999;
+      overflow-y: auto;
+      max-height: 85vh;
+      font-family: Arial, sans-serif;
+    }
+
+    #detailsPopup h3 {
+      margin-bottom: 10px;
+      font-size: 20px;
+      color: #2e7d32;
+    }
+
+    #detailsPopup p {
+      margin: 4px 0;
+      font-size: 14px;
+    }
+
+    #detailsPopup img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+
+    .close-btn {
+      margin-top: 12px;
+      padding: 6px 12px;
+      cursor: pointer;
+      background-color: #2e7d32;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+
+    /* Won crops section */
+    .won-crops-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .won-card {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 12px;
+      width: 180px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .won-img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    /* Highlight prices */
+    #bidPrice, #totalPrice {
+      color: #2e7d32;
+      font-weight: bold;
+    }
+
+    #popupImageGallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    #popupImageGallery img {
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-left">
+      <input type="text" id="search" placeholder="Search crop..." />
+      <input type="text" id="locationInput" placeholder="Enter location..." style="margin-left: 10px;" />
+      <button id="filterBtn" style="margin-left: 6px; background: white; color:#2e7d32; border:none; padding:7px 10px; border-radius:4px; cursor:pointer;">
+        🔍 Filter
+      </button>
+    </div>
+
+    <div class="navbar-right">
+      <button onclick="window.location.href='/wishlist'">❤️ My Wishlist (<span id="wishlist-count">0</span>)</button>
+      <button onclick="window.location.href='/profile'">👤 Profile</button>
+    </div>
+  </nav>
+
+  <!-- Won Crops Section -->
+  <section id="wonCropsContainerWrapper">
+    <h2>Your Won Crops</h2>
+    <div id="wonCropsContainer" class="won-crops-container">
+      <!-- Won crops will be dynamically injected here by JS -->
+    </div>
+  </section>
+
+  <!-- Crop Listing -->
+  <section id="crops-container" class="crop-container"></section>
+
+  <div id="noCropsMessage" class="no-crops-message" style="display:none;">
+    <h3>No crops found in this area</h3>
+    <p>Try searching again with a different location or keyword.</p>
+  </div>
+
+  <!-- Overlay -->
+  <div id="popupOverlay"></div>
+
+  <!-- Crop Details Popup -->
+  <div id="detailsPopup">
+    <h3 id="cropName"></h3>
+    <p><strong>Farmer:</strong> <span id="cropFarmer">-</span></p>
+    <p><strong>Quantity:</strong> <span id="cropQuantity">-</span></p>
+    <p><strong>Quality:</strong> <span id="cropQuality">-</span></p>
+    <p><strong>Location:</strong> <span id="cropLocation">-</span></p>
+    <p><strong>Date & Time:</strong> <span id="cropTime">-</span></p>
+    <p id="biddingStatus"></p>
+
+    <!-- Bid info -->
+    <p><strong>Bid Price:</strong> <span id="bidPrice">-</span></p>
+    <p><strong>Total Price:</strong> <span id="totalPrice">-</span></p>
+
+    <!-- Images -->
+    <div id="popupImageGallery"></div>
+
+    <button class="close-btn" onclick="closePopup()">Close</button>
+  </div>
+
+  <script src="{{ url_for('static', filename='b_portal.js') }}"></script>
+  <script>
+    document.getElementById("popupOverlay").addEventListener("click", closePopup);
+    function closePopup() {
+      document.getElementById("detailsPopup").style.display = "none";
+      document.getElementById("popupOverlay").style.display = "none";
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🌾 Crop Chat - Farmer & Bidder</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --wa-green: #25D366;
+      --wa-dark: #075E54;
+      --wa-light: #DCF8C6;
+      --bubble-incoming: #ffffff;
+      --bubble-outgoing: linear-gradient(180deg,#25D366,#18A65B);
+      --muted: #7a7a7a;
+    }
+
+    body {
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background-color: #e9f7ef;
+      margin: 0;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Wallpaper */
+    .wa-wallpaper {
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(0,0,0,0.02) 0 2px, transparent 3px),
+        radial-gradient(circle at 80% 80%, rgba(0,0,0,0.02) 0 2px, transparent 3px),
+        radial-gradient(circle at 50% 50%, rgba(0,0,0,0.01) 0 1px, transparent 2px);
+      background-color: #e6f7ef;
+      background-size: 120px 120px, 120px 120px, 60px 60px;
+    }
+
+    /* Header */
+    .chat-header {
+      background: linear-gradient(90deg,var(--wa-dark), #0b7a6a);
+      color: white;
+      box-shadow: 0 10px 30px rgba(7,94,84,0.12);
+    }
+    .avatar-ring {
+      width: 44px; height:44px; border-radius:12px;
+      background: rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    /* Chat container */
+    #chatBox {
+      min-height: calc(100vh - 180px);
+      padding: 20px 16px;
+      overflow-y: auto;
+    }
+
+    /* Bubble styles */
+    .bubble {
+      max-width: 78%;
+      padding: 10px 14px;
+      border-radius: 18px;
+      box-shadow: 0 4px 10px rgba(16,24,40,0.06);
+      line-height: 1.4;
+      word-break: break-word;
+      font-size: 14px;
+      position: relative;
+    }
+    .bubble.incoming {
+      background: var(--bubble-incoming);
+      color: #111827;
+      border-top-left-radius: 4px;
+    }
+    .bubble.outgoing {
+      background: var(--wa-light);
+      color: #06492f;
+      border-top-right-radius: 4px;
+    }
+
+    /* little tail */
+    .tail-left {
+      width:0; height:0; border-top:6px solid transparent; border-right:8px solid var(--bubble-incoming); border-bottom:6px solid transparent;
+      position:relative; left:-6px; top:8px;
+    }
+    .tail-right {
+      width:0; height:0; border-top:6px solid transparent; border-left:8px solid var(--wa-light); border-bottom:6px solid transparent;
+      position:relative; right:-6px; top:8px;
+    }
+
+    /* timestamp & checkmark */
+    .ts {
+      font-size: 10px; color: var(--muted); margin-left:4px;
+    }
+    .checkmark {
+      width: 12px; height: 12px;
+      stroke-width: 2;
+      margin-left: 3px;
+    }
+
+    /* input area */
+    .composer {
+      backdrop-filter: blur(6px);
+      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.85));
+      border-radius: 28px;
+      padding: 10px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .text-input {
+      display:block;
+      width:100%;
+      border:none;
+      outline:none;
+      font-size:15px;
+      background:transparent;
+      padding: 6px 8px;
+    }
+    .send-btn {
+      width:44px; height:44px; border-radius:999px; display:flex; align-items:center; justify-content:center;
+      box-shadow: 0 6px 16px rgba(24,166,91,0.12);
+      transition: transform .12s ease;
+    }
+    .send-btn svg {
+      width: 18px; height: 18px;
+    }
+    .send-btn:active { transform: translateY(1px) scale(0.98); }
+    .send-btn:disabled { opacity:0.5; cursor: not-allowed; transform:none; box-shadow:none; }
+
+    /* no messages card */
+    .no-msgs {
+      padding: 28px;
+      background: rgba(255,255,255,0.6);
+      border-radius: 14px;
+      text-align:center;
+      box-shadow: 0 6px 20px rgba(16,24,40,0.06);
+    }
+
+    /* scrollbars */
+    .scrollbar-thin::-webkit-scrollbar { width: 8px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 10px; }
+
+    @keyframes slide-in-from-right { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes slide-in-from-left { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+    .animate-in { animation-fill-mode: both; animation-duration: 280ms; }
+    .slide-in-from-right { animation-name: slide-in-from-right; }
+    .slide-in-from-left { animation-name: slide-in-from-left; }
+
+    @media (max-width:640px){
+      .avatar-ring { width:40px; height:40px; border-radius:10px; }
+      .bubble { font-size: 13px; }
+      #chatBox { padding-left:12px; padding-right:12px; }
+      .send-btn { width:40px; height:40px; }
+      .send-btn svg { width:16px; height:16px; }
+      .checkmark { width: 10px; height: 10px; }
+    }
+  </style>
+</head>
+<body class="wa-wallpaper">
+
+  <!-- HEADER -->
+  <header class="chat-header">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button id="backBtn" class="p-2 bg-white/8 hover:bg-white/12 rounded-lg text-white shadow-sm transition-transform active:scale-95" aria-label="Go back">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+        </button>
+
+        <div class="avatar-ring">
+          <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 2v6m0 0a6 6 0 100 12v-6" /></svg>
+        </div>
+
+        <div class="text-white">
+          <div class="text-base font-semibold leading-tight">{{ receiverName or 'Partner' }}</div>
+          <div class="text-xs" style="opacity:.92;">
+            <span class="inline-block w-2 h-2 rounded-full bg-green-400 mr-1 align-middle"></span>
+            <span class="align-middle text-white/90">Online</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CHAT AREA -->
+  <main class="max-w-4xl mx-auto">
+    <div id="chatBox" class="scrollbar-thin"></div>
+  </main>
+
+  <!-- COMPOSER -->
+  <div class="fixed bottom-6 left-0 right-0 max-w-4xl mx-auto px-4 z-50">
+    <div class="composer">
+      <input id="messageInput" class="text-input" type="text" placeholder="Type a message" autocomplete="off" />
+      <button id="sendBtn" class="send-btn" aria-label="Send message" title="Send">
+        <svg id="sendIcon" class="w-5 h-5" fill="none" stroke="white" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- JS logic -->
+  <script>
+    const cropId = "{{ crop_id }}";
+    const serverPartnerId = "{{ partner_id | default('', true) }}";
+    const senderId = "{{ user.id if user else '' }}";
+    const receiverId = serverPartnerId;
+
+    const chatBox = document.getElementById('chatBox');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const backBtn = document.getElementById('backBtn');
+    const sendIcon = document.getElementById('sendIcon');
+
+    if (!cropId || !senderId || !receiverId) {
+      document.body.innerHTML = '<div style="text-align:center;margin-top:50px;">Chat initialization failed</div>';
+      throw new Error('Chat initialization failed');
+    }
+
+    const API_BASE = '/api/messages';
+
+    async function loadMessages() {
+      try {
+        const res = await fetch(`${API_BASE}/${cropId}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        if (!data?.length) {
+          chatBox.innerHTML = '<div class="no-msgs">No messages yet</div>';
+        } else { renderMessages(data); }
+      } catch(e) { console.error(e); }
+    }
+
+    function renderMessages(messages) {
+      chatBox.innerHTML = messages.map(msg=>{
+        const isMine = msg.sender_id===senderId;
+        return `<div class="flex ${isMine?'justify-end':'justify-start'} animate-in ${isMine?'slide-in-from-right':'slide-in-from-left'} mb-3 px-2">
+          <div class="group relative max-w-[78%]">
+            <div class="bubble ${isMine?'outgoing':'incoming'}">
+              <div class="whitespace-pre-wrap break-words">${msg.message}</div>
+              <div class="flex justify-end mt-1 items-center">
+                <span class="ts">${new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>
+                ${isMine?'<svg class="checkmark text-green-700" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>':''}
+              </div>
+            </div>
+            <div class="${isMine?'tail-right':'tail-left'}"></div>
+          </div>
+        </div>`;
+      }).join('');
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text) return messageInput.focus();
+      sendBtn.disabled=true; sendIcon.style.transform='scale(0.9) rotate(90deg)';
+      try{
+        const res=await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({crop_id:cropId,sender_id:senderId,receiver_id:receiverId,message:text})});
+        if(!res.ok){const e=await res.json().catch(()=>({})); throw new Error(e.error||`HTTP ${res.status}`);}
+        messageInput.value=''; await loadMessages();
+      }catch(e){alert('Failed to send: '+e.message);}finally{sendBtn.disabled=false;sendIcon.style.transform='rotate(90deg) scale(1)';messageInput.focus();}
+    }
+
+    sendBtn.addEventListener('click',sendMessage);
+    messageInput.addEventListener('keypress',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}});
+    backBtn.addEventListener('click',()=>window.history.back());
+
+    loadMessages();
+    setInterval(loadMessages,2500);
+    messageInput.focus();
+  </script>
+</body>
+</html>
